@@ -73,6 +73,17 @@ public interface XmlBuildable {
 	public XmlBuildable addNamespace(String prefix, String uri) throws XmlBuildableException;
 
 	/**
+	 * Establece el namespace por defecto de un elemento
+	 * 'xmlns="http://webservices.cts.ast/"', por ejemplo.
+	 * 
+	 * @param namespaceUri
+	 *            - Uri de namespace a establecer.
+	 * @return this.
+	 * @throws XmlBuildableException
+	 */
+	public XmlBuildable setDefaultNamespace(String namespaceUri) throws XmlBuildableException;
+
+	/**
 	 * Guarda cambios sobre la entidad y retorna referencia a padre si existe.
 	 * De no existir referencia a padre, retorna referencia a this.
 	 * 

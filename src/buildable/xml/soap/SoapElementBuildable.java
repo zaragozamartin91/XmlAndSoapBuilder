@@ -76,4 +76,14 @@ public class SoapElementBuildable implements XmlBuildable {
 	public XmlBuildable parent() {
 		return parent;
 	}
+
+	@Override
+	public XmlBuildable setDefaultNamespace(String namespaceUri) throws XmlBuildableException {
+		try {
+			soapElement.addNamespaceDeclaration("", namespaceUri);
+		} catch (SOAPException e) {
+			throw new XmlBuildableException(e);
+		}
+		return this;
+	}
 }

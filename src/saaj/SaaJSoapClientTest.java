@@ -15,22 +15,16 @@ package saaj;
  */
 import javax.xml.soap.MessageFactory;
 import javax.xml.soap.SOAPBody;
-import javax.xml.soap.SOAPConnection;
-import javax.xml.soap.SOAPConnectionFactory;
 import javax.xml.soap.SOAPElement;
 import javax.xml.soap.SOAPEnvelope;
 import javax.xml.soap.SOAPHeader;
 import javax.xml.soap.SOAPMessage;
 import javax.xml.soap.SOAPPart;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.stream.StreamResult;
 
 /**
  * SOAP Client Implementation using SAAJ Api.
  */
-public class SaaJSoapClient {
+public class SaaJSoapClientTest {
 	/**
 	 * Method used to create the SOAP Request
 	 */
@@ -82,7 +76,11 @@ public class SaaJSoapClient {
 
 		// SOAP Body
 		SOAPBody soapBody = envelope.getBody();
+//		SOAPElement execute = soapBody.addChildElement("execute");
 		SOAPElement execute = soapBody.addChildElement("execute", "web");
+		
+		execute.addNamespaceDeclaration("", "http://webservices.cts.ast/");
+		
 		SOAPElement requestConnection = execute.addChildElement("requestConnection");
 		requestConnection.addChildElement("user").setTextContent("clara");
 		requestConnection.addChildElement("password");
@@ -91,7 +89,7 @@ public class SaaJSoapClient {
 		SOAPElement filtro = execute.addChildElement("filtro");
 		filtro.addChildElement("i_login").setTextContent("12");
 		
-
+		
 		//se persisten los cambios
 		soapMessage.saveChanges();
 
@@ -102,17 +100,6 @@ public class SaaJSoapClient {
 		return soapMessage;
 	}
 
-	/**
-	 * Method used to print the SOAP Response
-	 */
-	private static void printSOAPResponse(SOAPMessage soapResponse) throws Exception {
-		TransformerFactory transformerFactory = TransformerFactory.newInstance();
-		Transformer transformer = transformerFactory.newTransformer();
-		Source sourceContent = soapResponse.getSOAPPart().getContent();
-		System.out.println("\nResponse SOAP Message = ");
-		StreamResult result = new StreamResult(System.out);
-		transformer.transform(sourceContent, result);
-	}
 
 	/**
 	 * Starting point for the SAAJ - SOAP Client Testing
@@ -121,49 +108,13 @@ public class SaaJSoapClient {
 		testRunWs();
 	}
 	
-	private static void test_2(){
-		try {
-			createSOAPRequest();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	private static void test_1() {
-		try {
-			// Create SOAP Connection
-			SOAPConnectionFactory soapConnectionFactory = SOAPConnectionFactory.newInstance();
-			SOAPConnection soapConnection = soapConnectionFactory.createConnection();
-
-			// Send SOAP Message to SOAP Server
-			String url = "http://localhost:8080/axis2/services/Student?wsdl";
-			SOAPMessage soapResponse = soapConnection.call(createSOAPRequest(), url);
-
-			// Process the SOAP Response
-			printSOAPResponse(soapResponse);
-
-			soapConnection.close();
-		} catch (Exception e) {
-			System.err.println("Error occurred while sending SOAP Request to Server");
-			e.printStackTrace();
-		}
-	}//test_1
 	
 	
 	private static void testRunWs() {
 		try {
-			// Create SOAP Connection
-			SOAPConnectionFactory soapConnectionFactory = SOAPConnectionFactory.newInstance();
-			SOAPConnection soapConnection = soapConnectionFactory.createConnection();
-
 			// Send SOAP Message to SOAP Server
-			String url = "http://localhost:9082/AST-WS-CTS-IDM-DESBLOQUEAR_USUARIOS/DesbloquearUsuariosService?wsdl";
-			SOAPMessage soapResponse = soapConnection.call(createSOAPRequest(), url);
+			SOAPMessage soapMessage = createSOAPRequest();
 
-			// Process the SOAP Response
-			printSOAPResponse(soapResponse);
-
-			soapConnection.close();
 		} catch (Exception e) {
 			System.err.println("Error occurred while sending SOAP Request to Server");
 			e.printStackTrace();

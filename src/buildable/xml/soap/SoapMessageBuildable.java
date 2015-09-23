@@ -3,12 +3,13 @@ package buildable.xml.soap;
 import java.io.ByteArrayOutputStream;
 
 import javax.xml.soap.MessageFactory;
-import javax.xml.soap.SOAPElement;
 import javax.xml.soap.SOAPEnvelope;
 import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPHeader;
 import javax.xml.soap.SOAPMessage;
 import javax.xml.soap.SOAPPart;
+
+import org.w3c.dom.Document;
 
 import buildable.xml.XmlBuildable;
 import buildable.xml.XmlBuildableException;
@@ -16,7 +17,8 @@ import buildable.xml.XmlBuildableException;
 /**
  * Permite construir mensajes xml soap.<br/>
  * <br/>
- * Ejemplo de uso:<br/><br/>
+ * Ejemplo de uso:<br/>
+ * <br/>
  * <code>
  * 		SoapMessageBuildable soapMessageBuildable = new SoapMessageBuildable();<br/>
 		soapMessageBuildable<br/>
@@ -43,12 +45,17 @@ import buildable.xml.XmlBuildableException;
 <br/>
 		System.out.println(soapMessageBuildable.toString());<br/>
  * </code>
+ * 
  * @author martin.zaragoza
  *
  */
 public class SoapMessageBuildable implements XmlBuildable {
 	private SOAPEnvelope envelope;
 	private SOAPMessage soapMessage;
+
+	public SOAPMessage getSoapMessage() {
+		return soapMessage;
+	}
 
 	public SoapMessageBuildable() throws SoapMessageBuildableException {
 		try {
@@ -61,6 +68,14 @@ public class SoapMessageBuildable implements XmlBuildable {
 		}
 	}
 
+	/**
+	 * Agrega una declaracion de namespace en el Envelope.
+	 * 
+	 * @param prefix - Prefijo.
+	 * @param uri - Uri de namespace.
+	 * @return this.
+	 * @throws SoapMessageBuildableException
+	 */
 	public SoapMessageBuildable addNamespaceInEnvelope(String prefix, String uri) throws SoapMessageBuildableException {
 		try {
 			envelope.addNamespaceDeclaration(prefix, uri);
@@ -69,7 +84,15 @@ public class SoapMessageBuildable implements XmlBuildable {
 			throw new SoapMessageBuildableException(e);
 		}
 	}
-
+	
+	/**
+	 * Agrega una declaracion de namespace en el encabezado o Header.
+	 * 
+	 * @param prefix - Prefijo.
+	 * @param uri - Uri de namespace.
+	 * @return this.
+	 * @throws SoapMessageBuildableException
+	 */
 	public SoapMessageBuildable addNamespaceInHeader(String prefix, String uri) throws SoapMessageBuildableException {
 		try {
 			SOAPHeader header = envelope.getHeader();
@@ -80,6 +103,13 @@ public class SoapMessageBuildable implements XmlBuildable {
 		}
 	}
 
+	
+	/**
+	 * Obtiene una referencia XmlBuildable del cuerpo del mensaje Soap.
+	 * 
+	 * @return referencia XmlBuildable del cuerpo del mensaje Soap.
+	 * @throws SoapMessageBuildableException
+	 */
 	public XmlBuildable getBodyBuildable() throws SoapMessageBuildableException {
 		try {
 			return new SoapElementBuildable(envelope.getBody(), this);
@@ -88,6 +118,12 @@ public class SoapMessageBuildable implements XmlBuildable {
 		}
 	}
 
+	/**
+	 * Obtiene una referencia XmlBuildable del encabezado del mensaje Soap.
+	 * 
+	 * @return referencia XmlBuildable del encabezado del mensaje Soap.
+	 * @throws SoapMessageBuildableException
+	 */
 	public XmlBuildable getHeaderBuildable() throws SoapMessageBuildableException {
 		try {
 			return new SoapElementBuildable(envelope.getHeader(), this);
@@ -96,6 +132,12 @@ public class SoapMessageBuildable implements XmlBuildable {
 		}
 	}
 
+	/**
+	 * Obtiene una referencia XmlBuildable del Sobre o Envelope del mensaje Soap.
+	 * 
+	 * @return referencia XmlBuildable del Sobre o Envelope del mensaje Soap.
+	 * @throws SoapMessageBuildableException
+	 */
 	public XmlBuildable getEnvelopeBuildable() throws SoapMessageBuildableException {
 		try {
 			return new SoapElementBuildable(envelope, this);
@@ -124,7 +166,11 @@ public class SoapMessageBuildable implements XmlBuildable {
 
 	@Override
 	public XmlBuildable addChild(String localName, String prefix) throws XmlBuildableException {
-		return this.addChildIn(localName, prefix, "body");
+		try {
+			return this.getBodyBuildable().addChild(localName, prefix);
+		} catch (SoapMessageBuildableException e) {
+			throw new XmlBuildableException(e);
+		}
 	}// addChild
 
 	@Override
@@ -149,29 +195,9 @@ public class SoapMessageBuildable implements XmlBuildable {
 
 	@Override
 	public XmlBuildable addChild(String localName) throws XmlBuildableException {
-		return addChild(localName, null);
-	}
-
-	public XmlBuildable addChildIn(String localName, String prefix, String reference) throws XmlBuildableException {
 		try {
-			SOAPElement element;
-
-			if (reference.equals("header")) {
-				element = envelope.getHeader();
-			} else if (reference.equals("body")) {
-				element = envelope.getBody();
-			} else {
-				throw new XmlBuildableException("unknown reference!");
-			}
-
-			SOAPElement addChildElement;
-			if (prefix == null) {
-				addChildElement = element.addChildElement(localName);
-			} else {
-				addChildElement = element.addChildElement(localName, prefix);
-			}
-			return new SoapElementBuildable(addChildElement, this);
-		} catch (SOAPException e) {
+			return this.getBodyBuildable().addChild(localName);
+		} catch (SoapMessageBuildableException e) {
 			throw new XmlBuildableException(e);
 		}
 	}
@@ -195,8 +221,14 @@ public class SoapMessageBuildable implements XmlBuildable {
 		return null;
 	}
 
-	@Override
-	public String toString() {
+	/**
+	 * Transforma un SoapMessage en un String.
+	 * 
+	 * @param soapMessage
+	 *            - Soap message a transformar.
+	 * @return String que representa el soap message.
+	 */
+	public static String soapMessageToString(SOAPMessage soapMessage) {
 		try {
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
 			soapMessage.writeTo(out);
@@ -208,4 +240,34 @@ public class SoapMessageBuildable implements XmlBuildable {
 		}
 	}
 
+	/**
+	 * Agrega un arbol de elementos al cuerpo del mensaje.
+	 * 
+	 * @param document
+	 *            - Documento que forma el arbol de elementos a agregar.
+	 * @throws SOAPException
+	 */
+	public void addDocumentToBody(Document document) throws SOAPException {
+		this.envelope.getBody().addDocument(document);
+	}
+
+	@Override
+	public String toString() {
+		try {
+			return soapMessageToString(soapMessage);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	@Override
+	public XmlBuildable setDefaultNamespace(String namespaceUri) throws XmlBuildableException {
+		try {
+			this.getBodyBuildable().setDefaultNamespace(namespaceUri);
+		} catch (SoapMessageBuildableException e) {
+			throw new XmlBuildableException(e);
+		}
+		return this;
+	}
 }// SoapMessageBuilder
