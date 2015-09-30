@@ -102,20 +102,15 @@ public class SoapMessageBuildableTest {
 		SoapMessageBuildable soapMessageBuildable = new SoapMessageBuildable();
 		soapMessageBuildable
 				.getEnvelopeBuildable()
-				.setAttribute("xmlns", "http://some.namespace/")
 				.addNamespace("web", "http://webservices.cts.ast/")
 				.addNamespace("wsse",
 						"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd");
 
-		DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder builder = documentBuilderFactory.newDocumentBuilder();
+		soapMessageBuildable.getBodyBuildable().setDefaultNamespace("http://webservices.cts.ast/");
 
 		String exampleXML = "<validateUsers ><person/></validateUsers>";
-		InputStream stream = new ByteArrayInputStream(exampleXML.getBytes("UTF-8"));
-		Document document = builder.parse(stream);
-		System.out.println(document.getDocumentElement().getChildNodes().item(0));
 
-		soapMessageBuildable.addDocumentToBody(document);
+		soapMessageBuildable.addDocumentToBody(exampleXML);
 		System.out.println(soapMessageBuildable.toString());
 	}
 
@@ -125,8 +120,11 @@ public class SoapMessageBuildableTest {
 				.println("testBuildUsingDefaultNamespace----------------------------------------------------------------------------------------------------------------------------------------");
 
 		SoapMessageBuildable soapMessageBuildable = new SoapMessageBuildable();
-		soapMessageBuildable.getEnvelopeBuildable().addNamespace("wsse",
-				"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd");
+		soapMessageBuildable
+				.getEnvelopeBuildable()
+				.addNamespace("wsse",
+						"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd")
+				.addNamespace("web", "http://webservices.cts.ast/");
 
 		soapMessageBuildable
 				.getHeaderBuildable()
@@ -139,8 +137,8 @@ public class SoapMessageBuildableTest {
 				.setAttribute("Type", null,
 						"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText");
 
-		soapMessageBuildable.getBodyBuildable().addChild("validateUsers").setDefaultNamespace("asdasd").addChild("users").addChild("name")
-				.setValue("martin").parent().addChild("pass").setValue("1234");
+		soapMessageBuildable.getBodyBuildable().addChild("validateUsers","web").setDefaultNamespace("asdasd")
+				.addChild("users").addChild("name").setValue("martin").parent().addChild("pass").setValue("1234");
 
 		soapMessageBuildable.build();
 

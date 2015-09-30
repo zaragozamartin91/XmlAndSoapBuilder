@@ -3,6 +3,7 @@ package buildable.xml.soap;
 import java.io.ByteArrayOutputStream;
 
 import javax.xml.soap.MessageFactory;
+import javax.xml.soap.SOAPBody;
 import javax.xml.soap.SOAPEnvelope;
 import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPHeader;
@@ -11,6 +12,7 @@ import javax.xml.soap.SOAPPart;
 
 import org.w3c.dom.Document;
 
+import util.xml.XmlHelper;
 import buildable.xml.XmlBuildable;
 import buildable.xml.XmlBuildableException;
 
@@ -71,8 +73,10 @@ public class SoapMessageBuildable implements XmlBuildable {
 	/**
 	 * Agrega una declaracion de namespace en el Envelope.
 	 * 
-	 * @param prefix - Prefijo.
-	 * @param uri - Uri de namespace.
+	 * @param prefix
+	 *            - Prefijo.
+	 * @param uri
+	 *            - Uri de namespace.
 	 * @return this.
 	 * @throws SoapMessageBuildableException
 	 */
@@ -84,12 +88,14 @@ public class SoapMessageBuildable implements XmlBuildable {
 			throw new SoapMessageBuildableException(e);
 		}
 	}
-	
+
 	/**
 	 * Agrega una declaracion de namespace en el encabezado o Header.
 	 * 
-	 * @param prefix - Prefijo.
-	 * @param uri - Uri de namespace.
+	 * @param prefix
+	 *            - Prefijo.
+	 * @param uri
+	 *            - Uri de namespace.
 	 * @return this.
 	 * @throws SoapMessageBuildableException
 	 */
@@ -103,7 +109,6 @@ public class SoapMessageBuildable implements XmlBuildable {
 		}
 	}
 
-	
 	/**
 	 * Obtiene una referencia XmlBuildable del cuerpo del mensaje Soap.
 	 * 
@@ -133,7 +138,8 @@ public class SoapMessageBuildable implements XmlBuildable {
 	}
 
 	/**
-	 * Obtiene una referencia XmlBuildable del Sobre o Envelope del mensaje Soap.
+	 * Obtiene una referencia XmlBuildable del Sobre o Envelope del mensaje
+	 * Soap.
 	 * 
 	 * @return referencia XmlBuildable del Sobre o Envelope del mensaje Soap.
 	 * @throws SoapMessageBuildableException
@@ -243,12 +249,19 @@ public class SoapMessageBuildable implements XmlBuildable {
 	/**
 	 * Agrega un arbol de elementos al cuerpo del mensaje.
 	 * 
-	 * @param document
-	 *            - Documento que forma el arbol de elementos a agregar.
-	 * @throws SOAPException
+	 * @param xmlString
+	 *            - String xml a agregar.
+	 * @throws SoapMessageBuildableException
 	 */
-	public void addDocumentToBody(Document document) throws SOAPException {
-		this.envelope.getBody().addDocument(document);
+	public void addDocumentToBody(String xmlString) throws SoapMessageBuildableException {
+		try {
+			XmlHelper xmlHelper = XmlHelper.instance();
+			Document document = xmlHelper.stringToW3cDocument(xmlString);
+			SOAPBody body = this.envelope.getBody();
+			body.addDocument(document);
+		} catch (Exception e) {
+			throw new SoapMessageBuildableException(e);
+		}
 	}
 
 	@Override
